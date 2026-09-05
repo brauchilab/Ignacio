@@ -1,11 +1,11 @@
 ### Repositorio Ignacio
 
-# Como correr el pipeline
+# How to run the pipeline
 
-## 1. Archivos necesarios en la misma carpeta
+## 1. Files needed in the same folder
 
-Todos estos deben estar juntos, en la carpeta desde donde se va a correr el
-pipeline (la que contiene `inputs/`):
+All of these must be together, in the folder from which the pipeline
+will be run (the one containing `inputs/`):
 
 ```
 run_pipeline.py
@@ -24,29 +24,28 @@ tifffun.py                 (dependency of calc_diff_cube.py)
 tifffun_log2.py             (dependency of calc_diff_cube.py, and used directly by reticulum_state_classification.py)
 treatment_frames.json
 pipeline_config.json
-PSF.tif                    (solo si vas a correr deconvolucion)
+PSF.tif                    (only if you're going to run deconvolution)
 ```
 
-## 2. Estructura de entrada esperada
+## 2. Expected input structure
 
 ```
 inputs/
   <cell_name>/
-    RAW_<cell_name>.tif           (obligatorio)
-    C1_RAW_<cell_name>.tif        (se genera solo si falta)
-    C2_RAW_<cell_name>.tif        (se genera solo si falta)
-    cell_coords.csv               (opcional, borde de celula dibujado a mano)
+    RAW_<cell_name>.tif           (required)
+    C1_RAW_<cell_name>.tif        (generated if missing)
+    C2_RAW_<cell_name>.tif        (generated if missing)
+    cell_coords.csv               (optional, hand-drawn cell border)
 ```
 
-`cell_name` sigue el patron `<fecha>-Cell<numero>`, ej. `010519-Cell2`.
+`cell_name` follows the pattern `<date>-Cell<number>`, e.g. `010519-Cell2`.
 
-El pipeline crea todo lo demas dentro de `outputs/<cell_name>/` a medida
-que corre cada paso.
+The pipeline creates everything else inside `outputs/<cell_name>/` as
+each step runs.
 
-## 3. Correr el pipeline completo
+## 3. Running the full pipeline
 
-Editar `pipeline_config.json`, y correr `run_pipeline.py` (como script o
-como celda). No hace falta cambiar el codigo para cambiar la configuracion.
+Edit `pipeline_config.json`, and run `run_pipeline.py`. No need to change the code to change the configuration.
 
 ```json
 {
@@ -63,34 +62,34 @@ como celda). No hace falta cambiar el codigo para cambiar la configuracion.
 }
 ```
 
-- `cell_names`: `null` = todas las celulas en `inputs/`, o una lista de
-  nombres, ej. `["010519-Cell2", "010519-Cell3"]`.
-- `force_rerun_all`: `true` ignora `progress.json` y rehace todo.
-- `run_deconvolution`: `false` crea symlinks al raw en vez de
-  deconvolucionar.
+- `cell_names`: `null` = all cells in `inputs/`, or a list of names,
+  e.g. `["010519-Cell2", "010519-Cell3"]`.
+- `force_rerun_all`: `true` ignores `progress.json` and redoes everything.
+- `run_deconvolution`: `false` creates symlinks to the raw data instead
+  of deconvolving.
 - `reticulum_normalization_method` / `lysosome_normalization_method`:
-  `"dff"` o `"log2"`, independientes entre si.
+  `"dff"` or `"log2"`, independent of each other.
 - `reticulum_outlier_handle`: `clip`, `remove_iqr`, `remove_percentile`,
-  `remove_zscore`, o `none`.
-- `run_export_videos`: paso 5, opcional.
+  `remove_zscore`, or `none`.
+- `run_export_videos`: step 5, optional.
 
-Si `pipeline_config.json` no existe, o le falta alguna clave, se usan
-valores por defecto (los mismos que aparecen arriba) para lo que falte.
+If `pipeline_config.json` doesn't exist, or is missing a key, default
+values (the same ones shown above) are used for whatever is missing.
 
-Luego:
+Then:
 
 ```
 python run_pipeline.py
 ```
 
-## 4. Progreso y resume
+## 4. Progress and resuming
 
-Cada celula lleva su propio `outputs/<cell_name>/progress.json`, con el
-estado de cada paso (completo, error, o notas relevantes como que metodo
-de normalizacion se uso). Si el pipeline se interrumpe, correrlo de nuevo
-retoma desde el ultimo paso completo para cada celula.
+Each cell keeps its own `outputs/<cell_name>/progress.json`, with the
+status of each step (complete, error, or relevant notes such as which
+normalization method was used). If the pipeline is interrupted,
+running it again picks up from the last completed step for each cell.
 
-## 5. Salida por celula
+## 5. Output per cell
 
 ```
 outputs/<cell_name>/
@@ -98,21 +97,21 @@ outputs/<cell_name>/
   cell_metadata.json
   dark_frames.json, dark_frame_check.png
   bright_frames.json, bright_frame_check.png
-  deconv/                              (deconvolucionado, o symlinks al raw)
-  individual_masks/                    (mascaras por particula de lisosoma)
+  deconv/                              (deconvolved, or symlinks to raw)
+  individual_masks/                    (per-particle lysosome masks)
   <basename>_tracks.csv, ..._dff.csv, ..._dff_filt.csv
-  param3-..._tracks_dff_filt_with_states_ordered.csv  (estados de lisosoma)
-  <cell_name>_state_probs_global.npz   (probabilidades de estado del reticulo)
+  param3-..._tracks_dff_filt_with_states_ordered.csv  (lysosome states)
+  <cell_name>_state_probs_global.npz   (reticulum state probabilities)
   POIs.csv, trained_params.txt
-fiji_export/<cell_name>/               (si RUN_EXPORT_VIDEOS = True)
+fiji_export/<cell_name>/               (if RUN_EXPORT_VIDEOS = True)
   C1_state.tif
   C2_state.tif
 ```
 
-## 6. Ejemplo
+## 6. Example
 
-Correr solo la celula `010519-Cell2`, sin deconvolucion, normalizando
-con log2, generando los videos de estado al final.
+Run only the `010519-Cell2` cell, without deconvolution, normalizing
+with log2, generating the state videos at the end.
 
 `pipeline_config.json`:
 
@@ -131,17 +130,16 @@ con log2, generando los videos de estado al final.
 }
 ```
 
-Y luego:
+And then:
 
 ```bash
 python run_pipeline.py
 ```
 
-## 7. Entorno
+## 7. Environment
 
-Las librerias necesarias estan en `requirements.txt`:
+The required libraries are in `requirements.txt`:
 
 ```
 pip install -r requirements.txt
 ```
-
